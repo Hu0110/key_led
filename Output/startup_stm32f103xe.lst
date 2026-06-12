@@ -558,10 +558,10 @@ ARM Macro Assembler    Page 9
               00000000 
 Command Line: --debug --xref --diag_suppress=9931 --cpu=Cortex-M3 --apcs=interw
 ork --depend=..\..\output\startup_stm32f103xe.d -o..\..\output\startup_stm32f10
-3xe.o -IC:\Packs\Keil\STM32F1xx_DFP\2.3.0\Device\Include --predefine="__EVAL SE
-TA 1" --predefine="__UVISION_VERSION SETA 536" --predefine="STM32F10X_HD SETA 1
-" --list=..\..\output\startup_stm32f103xe.lst ..\..\Drivers\CMSIS\Device\ST\STM
-32F1xx\Source\Templates\arm\startup_stm32f103xe.s
+3xe.o -IC:\Packs\Keil\STM32F1xx_DFP\2.3.0\Device\Include --predefine="__UVISION
+_VERSION SETA 536" --predefine="STM32F10X_HD SETA 1" --list=..\..\output\startu
+p_stm32f103xe.lst ..\..\Drivers\CMSIS\Device\ST\STM32F1xx\Source\Templates\arm\
+startup_stm32f103xe.s
 
 
 
@@ -1722,4 +1722,4 @@ tes\arm\startup_stm32f103xe.s
       None
 Comment: __use_two_region_memory unused
 3 symbols
-426 symbols in table
+425 symbols in table

@@ -1,23 +1,3 @@
-/**
- ****************************************************************************************************
- * @file        main.c
- * @author      正点原子团队(ALIENTEK)
- * @version     V1.0
- * @date        2020-04-19
- * @brief       按键输入 实验
- * @license     Copyright (c) 2020-2032, 广州市星翼电子科技有限公司
- ****************************************************************************************************
- * @attention
- *
- * 实验平台:正点原子 MiniSTM32 V4开发板
- * 在线视频:www.yuanzige.com
- * 技术论坛:www.openedv.com
- * 公司网址:www.alientek.com
- * 购买地址:openedv.taobao.com
- *
- ****************************************************************************************************
- */
-
 #include "./stm32f1xx_it.h"
 #include "./SYSTEM/sys/sys.h"
 #include "./SYSTEM/usart/usart.h"
@@ -25,44 +5,99 @@
 #include "./BSP/LED/led.h"
 #include "./BSP/KEY/key.h"
 
+/* ====== 跑马灯控制变量 ====== */
+uint8_t run_mode = 0;       // 0=停止 1=运行
+uint8_t led_index = 0;      // 当前LED
+uint16_t speed = 500;       // ms（越小越快）
+uint32_t last_time = 0;
+
+void all_led_off(void)
+{
+    LED0(1);
+    LED1(1);
+}
+
+/* 跑马灯逻辑 */
+void marquee_update(void)
+{
+    if (!run_mode) return;
+
+    if (HAL_GetTick() - last_time >= speed)
+    {
+        last_time = HAL_GetTick();
+
+        /* 关掉所有灯 */
+        all_led_off();
+
+        /* 点亮当前LED */
+        if (led_index == 0)
+        {
+            LED0(0);
+        }
+        else
+        {
+            LED1(0);
+        }
+
+        /* 切换下一个 */
+        led_index ^= 1;
+    }
+}
 
 int main(void)
 {
-    uint8_t key; 
+    uint8_t key;
 
-    HAL_Init();                             /* 初始化HAL库 */
-    sys_stm32_clock_init(RCC_PLL_MUL9);     /* 设置时钟, 72Mhz */
-    delay_init(72);                         /* 延时初始化 */
-    led_init();                             /* 初始化LED */
-    key_init();                             /* 初始化按键 */
-    LED0(0);                                /* 先点亮LED0 */
-    
-    while(1)
+    HAL_Init();
+    sys_stm32_clock_init(RCC_PLL_MUL9);
+    delay_init(72);
+
+    led_init();
+    key_init();
+
+    all_led_off();
+
+    while (1)
     {
-        key = key_scan(0);                  /* 得到键值 */
+        key = key_scan(0);
 
         if (key)
         {
             switch (key)
             {
-                case WKUP_PRES:             /* 控制蜂鸣器 */
-                    LED0_TOGGLE();          /* LED0状态取反 */
+                /* ===== KEY0：开启/关闭跑马灯 ===== */
+                case KEY0_PRES:
+                    run_mode = !run_mode;
+
+                    if (run_mode)
+                    {
+                        led_index = 0;
+                        last_time = HAL_GetTick();
+                    }
+                    else
+                    {
+                        all_led_off();
+                    }
                     break;
 
-                case KEY1_PRES:             /* 控制LED1(GREEN)翻转 */
-                    LED1_TOGGLE();          /* LED1状态取反 */
+                /* ===== KEY1：加速 ===== */
+                case KEY1_PRES:
+                    if (speed > 100)
+                        speed -= 100;
+                    else if (speed > 30)
+                        speed -= 20;
                     break;
 
-                case KEY0_PRES:             /* 同时控制LED0, LED1翻转 */
-                    LED0_TOGGLE();          /* LED0状态取反 */
-                    LED1_TOGGLE();          /* LED1状态取反 */
+                /* ===== UP：关闭所有 ===== */
+                case WKUP_PRES:
+                    run_mode = 0;
+                    speed = 500;
+                    all_led_off();
                     break;
-            } 
+            }
         }
-        else
-        {
-            delay_ms(10);
-        }
+
+        /* 非阻塞更新跑马灯 */
+        marquee_update();
     }
 }
-
